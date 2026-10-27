@@ -1,0 +1,63 @@
+name: gps-platform
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: fleet
+      POSTGRES_USER: fleet
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in infrastructure/.env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U fleet -d fleet"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  migrate:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment: &backend-environment
+      DATABASE_URL: postgresql+psycopg://fleet:${POSTGRES_PASSWORD}@db:5432/fleet
+    command: [alembic, upgrade, head]
+    depends_on:
+      db:
+        condition: service_healthy
+  backend:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment: *backend-environment
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  frontend:
+    build: ../frontend
+    ports: ["127.0.0.1:8080:80"]
+    depends_on: [backend]
+  seed:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    environment: *backend-environment
+    profiles: [tools]
+    command: [python, /workspace/scripts/seed_demo_company.py, --output, /private/demo-credentials.json]
+    volumes: ["./:/private"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  simulator:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    profiles: [tools]
+    command: [python, /workspace/simulator/fleet_simulator.py, --url, "http://backend:8000", --credentials, /private/demo-credentials.json, --state, /state/queue.json]
+    volumes:
+      - ./:/private:ro
+      - simulator-state:/state
+    depends_on: [backend]
+volumes:
+  postgres-data:
+  simulator-state:

@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.egg-info/
+node_modules/
+dist/
+*.db
+infrastructure/demo-credentials.json
+infrastructure/demo-credentials.tmp
+simulator/.state/
+.tools/

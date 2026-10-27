@@ -1,0 +1,11 @@
+.git
+.venv
+.tools
+**/node_modules
+**/dist
+**/__pycache__
+**/.pytest_cache
+**/*.db
+**/.env
+**/demo-credentials.json
+simulator/.state

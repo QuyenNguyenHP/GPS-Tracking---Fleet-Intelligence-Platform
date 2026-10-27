@@ -1,0 +1,9 @@
+{
+  "name": "fleet-platform-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {"dev": "node node_modules/vite/bin/vite.js --host 0.0.0.0 --configLoader native", "build": "node node_modules/vite/bin/vite.js build --configLoader native", "test": "node --test src/features/history.test.js"},
+  "dependencies": {"react": "^19.0.0", "react-dom": "^19.0.0", "leaflet": "^1.9.4", "react-leaflet": "^5.0.0"},
+  "devDependencies": {"vite": "^6.1.0"}
+}
