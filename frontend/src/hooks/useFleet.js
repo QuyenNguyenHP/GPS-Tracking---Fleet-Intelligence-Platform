@@ -23,7 +23,7 @@ export function useFleet(auth) {
         };
         socket.onerror = () => socket.close();
       } catch (e) {
-        if (active) {setError(e.message); setConnection('Unavailable'); retry = setTimeout(connect, 5000);}
+        if (active) {setSnapshot({devices: []}); setError(e.message); setConnection('Unavailable'); retry = setTimeout(connect, 5000);}
       }
     };
     connect();

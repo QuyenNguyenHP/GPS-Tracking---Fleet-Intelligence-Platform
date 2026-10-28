@@ -4,8 +4,10 @@ Local demo credentials are cryptographically random 32-byte URL-safe tokens. Onl
 
 Every operator endpoint verifies both enabled user and organization membership. A client-supplied organization never grants access by itself. Ingestion derives the owner and permitted device from the authenticated credential. WebSockets authenticate in the first frame and recheck authorization every snapshot. Browser credentials live only in React memory.
 
-The Compose ports bind to loopback. HTTP is permitted for local development only. Before deployment add TLS, proper operator login with expiring sessions, RBAC administration, credential rotation/revocation tooling, request/connection rate limits, origin checks, monitoring, backups, retention and audit controls. Do not expose this demo directly to the internet.
+Account login now uses salted password hashes and eight-hour, revocable sessions. Platform administrators manage organizations and accounts; regular users cannot call admin endpoints. Login attempts are throttled per IP and username within each process. See [accounts and administration](accounts-and-admin.md) for credential handling, role boundaries and limitations.
 
-Disable a user/device to revoke access; replacing its stored token hash rotates its credential. Provisioning/admin APIs are deliberately deferred. Keep generated credential files private; POSIX mode is restricted by the seed script, but Windows ACLs inherit from the project folder and must be managed by its owner.
+The Compose ports bind to loopback. HTTP is permitted for local development only. Before deployment add TLS, finer organization roles, device credential rotation tooling, shared request/connection rate limits, origin checks, monitoring, backups, retention and audit controls. Do not expose this demo directly to the internet.
+
+Disable a user in the admin page to revoke its sessions; password resets also revoke all its sessions and legacy credentials. Disabling an organization blocks workspace access and device uploads. Device administration is deferred. Keep generated credential files private; POSIX mode is restricted by the seed script, but Windows ACLs inherit from the project folder and must be managed by its owner.
 
 Precise location history is sensitive. Set organizational access, retention and tracking policies before real tracking. Development map tiles use OpenStreetMap's public endpoint; evaluate provider terms and capacity before deployment. Font and tile requests use external services.

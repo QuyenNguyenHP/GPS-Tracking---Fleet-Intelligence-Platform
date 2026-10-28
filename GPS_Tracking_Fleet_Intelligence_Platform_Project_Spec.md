@@ -2,13 +2,13 @@
 
 **Product requirements, system architecture, device concept, and implementation roadmap for Codex**
 
-| Field | Value |
-|---|---|
-| Version | **2.0** |
-| Date | **2026-10-27** |
-| Status | **Product vision agreed; architecture and initial requirements proposed; implementation pending** |
-| Initial hardware | **Seeed XIAO ESP32S3 + L76K GNSS, Wi-Fi, USB-powered** |
-| Final product | **Multi-device, multi-company GPS data platform with live tracking, history, processing, analytics, and APIs** |
+| Field            | Value                                                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Version          | **2.0**                                                                                                        |
+| Date             | **2026-10-27**                                                                                                 |
+| Status           | **Product vision agreed; architecture and initial requirements proposed; implementation pending**              |
+| Initial hardware | **Seeed XIAO ESP32S3 + L76K GNSS, Wi-Fi, USB-powered**                                                         |
+| Final product    | **Multi-device, multi-company GPS data platform with live tracking, history, processing, analytics, and APIs** |
 
 > **Critical product principle:** The GPS tracker is an edge device, **not the final product**. The final deliverable is an end-to-end platform that can collect location data from many devices, retain it securely, visualize it, and support different business applications built on the same location-data infrastructure. Fleet management for a transportation company is the primary example, but the platform must not be hardcoded only for vehicles.
 
@@ -85,22 +85,22 @@ Build a reusable **GPS Tracking & Location Intelligence Platform** comprising:
 
 ## 3. Product Modules and Release Priorities
 
-| Module | Core capability | Delivery priority |
-|---|---|---|
-| Device registry | Register, enable/disable, monitor devices, store firmware and network metadata | MVP |
-| Telemetry ingestion | Authenticated single/batch upload; schema validation; duplicate-safe processing | MVP |
-| Data server | Persist telemetry, positions, device status, and history | MVP |
-| Live map | Show latest positions for one or many devices; online/stale/offline status | MVP |
-| Route history | Query date ranges, connect valid points, visualize gaps, playback | MVP |
-| Organizations and users | Company workspaces and authorized member access | MVP foundation |
-| Assets and device assignments | Associate device with vehicle/container/equipment over time | Fleet MVP |
-| Fleet management | Fleet groups, vehicles, driver records, search and filters | Fleet MVP |
-| Trip/stop analytics | Trips, distance, duration, stop periods, summaries | Fleet MVP |
-| Geofences and alerts | Enter/exit, stopped-too-long, device offline, low battery | Fleet MVP |
-| Analytics / reporting | Dashboard KPI cards, per-asset summaries, CSV/GeoJSON exports | Fleet MVP |
-| API/webhooks | Controlled programmatic access to data and events | After core MVP |
-| Config / OTA | Remote device config, firmware lifecycle, diagnostics | Later |
-| Optimization / AI | Anomaly detection, route efficiency, advanced prediction | Later, after sufficient data |
+| Module                        | Core capability                                                                 | Delivery priority            |
+| ----------------------------- | ------------------------------------------------------------------------------- | ---------------------------- |
+| Device registry               | Register, enable/disable, monitor devices, store firmware and network metadata  | MVP                          |
+| Telemetry ingestion           | Authenticated single/batch upload; schema validation; duplicate-safe processing | MVP                          |
+| Data server                   | Persist telemetry, positions, device status, and history                        | MVP                          |
+| Live map                      | Show latest positions for one or many devices; online/stale/offline status      | MVP                          |
+| Route history                 | Query date ranges, connect valid points, visualize gaps, playback               | MVP                          |
+| Organizations and users       | Company workspaces and authorized member access                                 | MVP foundation               |
+| Assets and device assignments | Associate device with vehicle/container/equipment over time                     | Fleet MVP                    |
+| Fleet management              | Fleet groups, vehicles, driver records, search and filters                      | Fleet MVP                    |
+| Trip/stop analytics           | Trips, distance, duration, stop periods, summaries                              | Fleet MVP                    |
+| Geofences and alerts          | Enter/exit, stopped-too-long, device offline, low battery                       | Fleet MVP                    |
+| Analytics / reporting         | Dashboard KPI cards, per-asset summaries, CSV/GeoJSON exports                   | Fleet MVP                    |
+| API/webhooks                  | Controlled programmatic access to data and events                               | After core MVP               |
+| Config / OTA                  | Remote device config, firmware lifecycle, diagnostics                           | Later                        |
+| Optimization / AI             | Anomaly detection, route efficiency, advanced prediction                        | Later, after sufficient data |
 
 ### User roles (proposed)
 
@@ -118,12 +118,12 @@ Use strict server-side authorization and organization scoping; do not rely on fr
 
 ### 4.1 Planned hardware variants
 
-| Version | Connectivity | Power | Typical role |
-|---|---|---|---|
-| V1 | Wi-Fi | Wired USB 5 V | First end-to-end prototype, hotspot-enabled vehicles, lab testing |
-| V2 | Wi-Fi | Rechargeable battery | Portable objects with Wi-Fi coverage |
-| V3 | 4G LTE + SIM | Wired / automotive supply | Independent vehicle tracker for operational deployment |
-| V4 | 4G LTE + SIM | Rechargeable battery | Portable outdoor asset tracking without Wi-Fi |
+| Version | Connectivity | Power                     | Typical role                                                      |
+| ------- | ------------ | ------------------------- | ----------------------------------------------------------------- |
+| V1      | Wi-Fi        | Wired USB 5 V             | First end-to-end prototype, hotspot-enabled vehicles, lab testing |
+| V2      | Wi-Fi        | Rechargeable battery      | Portable objects with Wi-Fi coverage                              |
+| V3      | 4G LTE + SIM | Wired / automotive supply | Independent vehicle tracker for operational deployment            |
+| V4      | 4G LTE + SIM | Rechargeable battery      | Portable outdoor asset tracking without Wi-Fi                     |
 
 **GNSS obtains the position. Wi-Fi/4G only transmits it.** Wi-Fi-only devices need access to a network (for example, a car hotspot). For independently tracked vehicles, the cellular version is normally more practical.
 
@@ -234,11 +234,11 @@ Use strict server-side authorization and organization scoping; do not rely on fr
 Assuming one message per interval around the clock:
 
 | Devices | Interval | Messages per day | Messages per 30-day period |
-|---:|---:|---:|---:|
-| 1 | 5 s | 17,280 | 518,400 |
-| 100 | 5 s | 1,728,000 | 51,840,000 |
-| 1,000 | 5 s | 17,280,000 | 518,400,000 |
-| 100 | 60 s | 144,000 | 4,320,000 |
+| ------: | -------: | ---------------: | -------------------------: |
+|       1 |      5 s |           17,280 |                    518,400 |
+|     100 |      5 s |        1,728,000 |                 51,840,000 |
+|   1,000 |      5 s |       17,280,000 |                518,400,000 |
+|     100 |     60 s |          144,000 |                  4,320,000 |
 
 Actual data-storage and bandwidth costs depend on protocol overhead, schema, indexes, geometry, retention, and compression. These are sizing illustrations, not performance guarantees. **Design for data retention and partitioning early**, especially if moving beyond tens or hundreds of vehicles.
 
@@ -280,18 +280,18 @@ Device -> HTTPS ingress -> Authenticate device -> Validate schema
 
 ### Suggested technology (initial, subject to repository constraints)
 
-| Component | Proposal | Notes |
-|---|---|---|
-| Firmware | PlatformIO + Arduino/C++, or ESP-IDF | Hardware abstraction by interface |
-| Backend | Python **FastAPI** | REST + WebSockets + background integration |
-| Relational/spatial DB | **PostgreSQL + PostGIS** | Recommended for growing spatial queries; existing MySQL acceptable for a smaller MVP |
-| Frontend | **React** | Responsive dashboard |
-| Map | **Leaflet** | Select a map tile provider with appropriate production usage rights and capacity |
-| Background jobs | In-process initially; worker + queue when needed | Avoid heavyweight infrastructure prematurely |
-| Cache/pub-sub | Optional Redis as scale demands | Not required for the first prototype |
-| Device transport | **HTTPS POST**, MQTT over TLS optionally later | Keep server contract versioned |
-| Deploy | **Docker Compose** initially | Containerize backend, web, database, migrations |
-| Storage/archive | DB initially; object storage later | Retention, backup, optional cold archive |
+| Component             | Proposal                                             | Notes                                                                                |
+| --------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Firmware              | PlatformIO + Arduino/C++, or ESP-IDF                 | Hardware abstraction by interface                                                    |
+| Backend               | Python **FastAPI**                             | REST + WebSockets + background integration                                           |
+| Relational/spatial DB | **PostgreSQL + PostGIS**                       | Recommended for growing spatial queries; existing MySQL acceptable for a smaller MVP |
+| Frontend              | **React**                                      | Responsive dashboard                                                                 |
+| Map                   | **Leaflet**                                    | Select a map tile provider with appropriate production usage rights and capacity     |
+| Background jobs       | In-process initially; worker + queue when needed     | Avoid heavyweight infrastructure prematurely                                         |
+| Cache/pub-sub         | Optional Redis as scale demands                      | Not required for the first prototype                                                 |
+| Device transport      | **HTTPS POST**, MQTT over TLS optionally later | Keep server contract versioned                                                       |
+| Deploy                | **Docker Compose** initially                   | Containerize backend, web, database, migrations                                      |
+| Storage/archive       | DB initially; object storage later                   | Retention, backup, optional cold archive                                             |
 
 **Scaling guidance:** Index tenant/device/time queries; consider range partitioning by time, spatial indexes, summaries/downsampled views for long time ranges, and lifecycle/retention jobs. Load test before adding unnecessary distributed services.
 
@@ -301,27 +301,27 @@ Device -> HTTPS ingress -> Authenticate device -> Validate schema
 
 Make the model useful for other asset-tracking applications, not only trucking.
 
-| Entity/table | Main fields / purpose |
-|---|---|
-| `organizations` | Tenant/company, name, status, settings |
-| `users` | Identity, enabled state, login metadata |
-| `organization_members` | User <-> organization role and permissions |
-| `fleets` | Company-specific groups of assets/vehicles |
-| `assets` | Generic tracked object: type (`vehicle`, `equipment`, `container`, etc.), name, metadata, org/fleet |
-| `vehicles` | Vehicle-specific extension: registration/plate, type, optional capacity; **not a replacement for generic assets** |
-| `drivers` | Optional driver roster; personal information handled with access control |
-| `driver_assignments` | Driver-to-vehicle/asset relationship valid for a time interval |
-| `devices` | Hardware ID, firmware, connectivity mode, provisioning/auth reference, status |
-| `device_assignments` | Device-to-asset mapping with `valid_from`/`valid_to`; avoids attributing old trips to a reassigned vehicle |
-| `positions` | Raw valid/flagged GNSS records: device, coordinates, capture/arrival times, speed, heading, quality, tenant linkage as needed |
-| `device_latest` | Most recent valid position, quality/status, last recorded/received timestamps |
-| `device_heartbeats` | Device connectivity and power state even when GNSS fix is missing |
-| `trips` | Start/end, distance, movement duration, asset/device association, processing version |
-| `stops` | Stop start/end, centroid, duration, classification |
-| `geofences` | Organization-owned circles/polygons and policies |
-| `geofence_events` | Enter/exit event, asset, event time, evaluated rule/version |
-| `alerts` | Rule, severity, status, asset, event timestamp, acknowledgement |
-| `audit_logs` | Security and administrative actions |
+| Entity/table             | Main fields / purpose                                                                                                         |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `organizations`        | Tenant/company, name, status, settings                                                                                        |
+| `users`                | Identity, enabled state, login metadata                                                                                       |
+| `organization_members` | User <-> organization role and permissions                                                                                    |
+| `fleets`               | Company-specific groups of assets/vehicles                                                                                    |
+| `assets`               | Generic tracked object: type (`vehicle`, `equipment`, `container`, etc.), name, metadata, org/fleet                     |
+| `vehicles`             | Vehicle-specific extension: registration/plate, type, optional capacity; **not a replacement for generic assets**       |
+| `drivers`              | Optional driver roster; personal information handled with access control                                                      |
+| `driver_assignments`   | Driver-to-vehicle/asset relationship valid for a time interval                                                                |
+| `devices`              | Hardware ID, firmware, connectivity mode, provisioning/auth reference, status                                                 |
+| `device_assignments`   | Device-to-asset mapping with `valid_from`/`valid_to`; avoids attributing old trips to a reassigned vehicle                |
+| `positions`            | Raw valid/flagged GNSS records: device, coordinates, capture/arrival times, speed, heading, quality, tenant linkage as needed |
+| `device_latest`        | Most recent valid position, quality/status, last recorded/received timestamps                                                 |
+| `device_heartbeats`    | Device connectivity and power state even when GNSS fix is missing                                                             |
+| `trips`                | Start/end, distance, movement duration, asset/device association, processing version                                          |
+| `stops`                | Stop start/end, centroid, duration, classification                                                                            |
+| `geofences`            | Organization-owned circles/polygons and policies                                                                              |
+| `geofence_events`      | Enter/exit event, asset, event time, evaluated rule/version                                                                   |
+| `alerts`               | Rule, severity, status, asset, event timestamp, acknowledgement                                                               |
+| `audit_logs`           | Security and administrative actions                                                                                           |
 
 **Important modeling rules:**
 
@@ -429,17 +429,17 @@ A fleet manager operating 100 trucks should be able to:
 
 ### 10.2 Useful initial analytics
 
-| Metric | Calculation concept | Data limitations |
-|---|---|---|
-| Traveled distance | Sum plausible consecutive GNSS segment distances | Gaps and noisy fixes can distort totals; optionally map-match later |
-| Trip count | Configurable time/movement threshold trip segmentation | GPS-only trip definition is heuristic |
-| Moving duration | Intervals classified as moving based on speed/position | Dependent on sampling, threshold, and quality |
-| Stop duration | Sustained low movement in a radius over minimum time | Does not prove engine-off or idling |
-| Average / maximum observed speed | GNSS speed over accepted trip points | GPS quality and sampling affect measurements |
-| Vehicle utilization | Active-travel time versus chosen available time | Requires agreed operational definition |
-| Geofence enter/exit | Compare geometry against positions with hysteresis | Delays possible with low update rate / GNSS errors |
-| Route deviation | Compare measured path with a designated corridor | Requires a planned route/corridor definition |
-| Offline / low-battery events | Device heartbeat/status and thresholds | Requires reliable device metadata |
+| Metric                           | Calculation concept                                    | Data limitations                                                    |
+| -------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------- |
+| Traveled distance                | Sum plausible consecutive GNSS segment distances       | Gaps and noisy fixes can distort totals; optionally map-match later |
+| Trip count                       | Configurable time/movement threshold trip segmentation | GPS-only trip definition is heuristic                               |
+| Moving duration                  | Intervals classified as moving based on speed/position | Dependent on sampling, threshold, and quality                       |
+| Stop duration                    | Sustained low movement in a radius over minimum time   | Does not prove engine-off or idling                                 |
+| Average / maximum observed speed | GNSS speed over accepted trip points                   | GPS quality and sampling affect measurements                        |
+| Vehicle utilization              | Active-travel time versus chosen available time        | Requires agreed operational definition                              |
+| Geofence enter/exit              | Compare geometry against positions with hysteresis     | Delays possible with low update rate / GNSS errors                  |
+| Route deviation                  | Compare measured path with a designated corridor       | Requires a planned route/corridor definition                        |
+| Offline / low-battery events     | Device heartbeat/status and thresholds                 | Requires reliable device metadata                                   |
 
 **Do not overclaim what GPS alone can measure:**
 

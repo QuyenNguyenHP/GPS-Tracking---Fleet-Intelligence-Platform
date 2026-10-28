@@ -1,5 +1,16 @@
 # Verification record — 2026-10-27
 
+## Account/admin update — 2026-10-28
+
+- The original 14 backend tests still pass. Seven account/admin tests cover password hashing, login/logout, expiry, throttling, platform-admin authorization, membership changes, organization disabling, password reset/revocation, self-protection and seed preservation.
+- Four admin-form tests pass: create organization, create user with memberships, preserve blank passwords/protect own role, and display server errors without discarding the form.
+- Frontend production build passes (75 modules). Validation used an isolated Windows dependency directory, preserving the user's WSL `node_modules`.
+- Migration `0002` and Alembic drift check passed on a copy of the existing SQLite database. The user's active database was not migrated during testing; restart `python3 app.py` to migrate and provision account login.
+- A real HTTP smoke test on the migrated copy passed login, platform organization/user listing and logout.
+- No browser is connected, so visual browser verification remains pending. PostgreSQL-specific migration/runtime validation remains pending as previously recorded.
+
+## Initial foundation
+
 Implemented Milestone A foundation; full Docker/browser acceptance remains pending.
 
 | Check | Result |

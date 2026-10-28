@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Float, ForeignKey, Index, Integer, JSON, String, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, DateTime, Float, ForeignKey, Index, Integer, JSON, String, UniqueConstraint, false, true
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -10,6 +10,7 @@ class Organization(Base):
     __tablename__ = "organizations"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     name: Mapped[str] = mapped_column(String(200))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default=true())
 
 
 class User(Base):
@@ -18,6 +19,16 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(200))
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    username: Mapped[str | None] = mapped_column(String(100), unique=True)
+    password_hash: Mapped[str | None] = mapped_column(String(300))
+    is_platform_admin: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+
+
+class LoginSession(Base):
+    __tablename__ = "login_sessions"
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 
 class Membership(Base):

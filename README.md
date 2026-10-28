@@ -2,6 +2,78 @@
 
 Milestone A software foundation: authenticated telemetry → durable history → live fleet map → route playback. Hardware is not required. The current project folder is the repository root.
 
+## Account login and admin page
+
+Sign in with a **username and password**. The default local platform-admin credentials are **admin / admin123**. Passwords require at least eight characters. Change this development password before deploying outside your local environment.
+
+Restart `python3 app.py` to apply the account migration and prepare the admin account automatically for the default SQLite database. Existing device keys and history are retained. For Docker, rebuild the services and run the seed command again. For a custom database connection, run migrations and seeding explicitly as described in [account setup](docs/accounts-and-admin.md).
+
+After signing in as `admin`, use **Organizations** to create/rename/disable companies and **Users** to create accounts, assign workspaces, change platform-admin access, disable accounts or reset passwords. Use **Fleet workspace** to return to the map. The separate `other.viewer` account can verify regular-user restrictions. Seeding again does not reset existing accounts.
+
+## Development: separate backend and frontend terminals
+
+### Quick start in WSL / Ubuntu
+
+From `backend`, install once and start the development server:
+
+```bash
+sudo python3 -m pip install --break-system-packages -r requirements.txt
+python3 app.py
+```
+
+This system-wide install follows the selected development preference; it can conflict with Ubuntu-managed Python packages. Run the server without sudo. Python 3.11+ is required. The launcher applies migrations and, when `DATABASE_URL` is unset, prepares demo identities in the local SQLite database automatically. If `DATABASE_URL` is set, it migrates that database but does not seed it. This launcher is for local development.
+
+In another terminal, from `frontend`:
+
+```bash
+npm ci
+npm run dev
+```
+
+Open http://localhost:5173. Sign in as `admin` using the generated account password described above. Subsequent starts require only `python3 app.py` and `npm run dev` in their respective directories. Run the simulator separately for moving positions.
+
+### PowerShell setup
+
+Use Python 3.11+ and Node.js 22+ (including npm). These commands use SQLite for local development, so Docker is not required. PostgreSQL/PostGIS acceptance still uses the Compose setup below. Run each terminal from this project folder initially.
+
+First-time setup:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e 'backend[test]'
+cd frontend
+npm ci
+cd ..
+```
+
+Terminal 1 — backend with automatic reload:
+
+```powershell
+cd backend
+..\.venv\Scripts\python.exe -m alembic upgrade head
+..\.venv\Scripts\python.exe ../scripts/seed_demo_company.py --output ../infrastructure/demo-credentials.json
+..\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Migration and seed commands are safe to rerun. Leave `DATABASE_URL` unset to use the local `backend/fleet.db`. API docs: http://127.0.0.1:8000/docs.
+
+Terminal 2 — frontend with hot reload:
+
+```powershell
+cd frontend
+npm run dev
+```
+
+Open **http://localhost:5173**. Vite proxies `/api` HTTP and WebSocket requests to the backend on port 8000. Sign in with the generated `admin` account, then choose **Fleet workspace** for the map.
+
+Terminal 3 — optional moving demo devices:
+
+```powershell
+.\.venv\Scripts\python.exe simulator/fleet_simulator.py --url http://127.0.0.1:8000
+```
+
+Stop each process with Ctrl+C. If `npm` is not recognized, install Node.js 22+ with npm and reopen the terminals. If PowerShell blocks `npm.ps1`, use `npm.cmd ci` / `npm.cmd run dev`. Stop any Docker backend using port 8000 before starting the local backend.
+
 ## Run locally with Docker
 
 Prerequisites: Docker Desktop with its Linux engine running (Compose v2). The PostGIS service uses `linux/amd64`; Windows ARM requires Docker's amd64 emulation support.
@@ -16,7 +88,7 @@ docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.y
 docker compose --env-file infrastructure/.env -f infrastructure/docker-compose.yml run --rm simulator
 ```
 
-Open **http://localhost:8080**. Select organization `demo` and paste its `operator_token` from the generated private `infrastructure/demo-credentials.json`. A second organization, `other`, has a different operator token for isolation checks. Keep the simulator terminal running. No credentials are embedded in source code.
+Open **http://localhost:8080**. Sign in as `admin` with the generated password from `infrastructure/demo-credentials.json`. A second organization, `other`, has a separate `other.viewer` account for isolation checks. Keep the simulator terminal running. No credentials are embedded in source code.
 
 - API and interactive contract: http://localhost:8000/docs
 - Health: http://localhost:8000/api/v1/health
@@ -37,6 +109,7 @@ cd backend
 cd ../frontend
 npm ci
 npm test
+npm run test:ui
 npm run build
 cd ..
 ```
@@ -63,4 +136,4 @@ Those tests use isolated SQLite databases by default. See [test plan](docs/test-
 - `docs/`: [project spec](docs/PROJECT_SPEC.md), architecture, contracts, security and test plan.
 - `firmware/xiao-esp32s3-l76k/`: reserved for Milestone B; no unverified pin assignments.
 
-This is a local prototype. Human access uses generated operator bearer tokens with organization membership; a user login/session system, full RBAC administration, clustering, advanced analytics, alerts, hardware, production TLS, retention and deployment hardening are later work. WebSockets send fresh organization snapshots every two seconds. History requests are limited to seven days and paginated; the UI refuses more than 50,000 samples rather than silently truncating a route.
+This is a local prototype. Human access uses password login with eight-hour sessions. Platform administrators manage organizations, accounts and memberships; fleet reads remain organization-scoped. Legacy operator tokens remain available for existing read-only API integrations, but cannot administer the platform. Fine-grained organization roles, clustering, advanced analytics, alerts, hardware, production TLS, retention and deployment hardening are later work. WebSockets send fresh organization snapshots every two seconds. History requests are limited to seven days and paginated; the UI refuses more than 50,000 samples rather than silently truncating a route.

@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from starlette.responses import JSONResponse
 
 from app.api.routes import router
+from app.api.accounts import router as accounts_router
+from app.api.admin import router as admin_router
 
 app = FastAPI(title="GPS Tracking & Fleet Intelligence", version="0.1.0")
 
@@ -38,3 +40,5 @@ class BodyLimit:
 
 app.add_middleware(BodyLimit)
 app.include_router(router)
+app.include_router(accounts_router)
+app.include_router(admin_router)

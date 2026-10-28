@@ -8,6 +8,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 from app.auth import digest
+from app.auth.passwords import hash_password
 from app.db import SessionLocal
 from app.models import Asset, Assignment, Device, Membership, Organization, User
 
@@ -32,6 +33,17 @@ def seed(count, output):
                 db.add(User(id=slug + "-operator", name=name + " operator", token_hash=digest(entry["operator_token"])))
                 db.flush()
                 db.add(Membership(user_id=slug + "-operator", organization_id=slug, role="viewer"))
+            account_id = slug + "-account"
+            if not db.get(User, account_id):
+                login = entry.setdefault("account", {
+                    "username": "admin" if slug == "demo" else "other.viewer",
+                    "password": "admin123" if slug == "demo" else secrets.token_urlsafe(18),
+                })
+                db.add(User(id=account_id, name="Platform Administrator" if slug == "demo" else "Harbor Viewer",
+                            username=login["username"], password_hash=hash_password(login["password"]),
+                            token_hash=digest(secrets.token_urlsafe(32)), is_platform_admin=slug == "demo"))
+                db.flush()
+                db.add(Membership(user_id=account_id, organization_id=slug, role="viewer"))
             for i in range(size):
                 device_id, asset_id = f"{slug}-GPS-{i + 1:03}", f"{slug}-asset-{i + 1:03}"
                 saved = next((d for d in entry["devices"] if d["device_id"] == device_id), None)
@@ -52,6 +64,7 @@ def seed(count, output):
         temp.replace(output)
         db.commit()
     print(f"Seeded two organizations. Private credentials: {output}")
+    print("Account login: admin. Initial password is in organizations[0].account.password.")
 
 
 if __name__ == "__main__":

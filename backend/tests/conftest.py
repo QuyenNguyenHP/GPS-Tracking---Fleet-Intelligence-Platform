@@ -15,6 +15,8 @@ from seed_demo_company import seed
 
 @pytest.fixture()
 def client(tmp_path):
+    from app.api.accounts import login_attempts
+    login_attempts.clear()
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     seed(2, tmp_path / "credentials.json")

@@ -1,0 +1,2 @@
+# Install the backend dependencies declared in pyproject.toml.
+-e .

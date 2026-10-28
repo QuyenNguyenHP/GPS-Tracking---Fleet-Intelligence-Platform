@@ -1,5 +1,7 @@
 # Implemented API
 
+Account login and platform-admin routes are documented in [accounts-and-admin.md](accounts-and-admin.md). Browser users sign in using username/password and pass the returned session token to the operator routes below. Existing operator tokens remain read-only integration credentials.
+
 | Endpoint | Authentication | Behavior |
 |---|---|---|
 | `GET /api/v1/health` | none | Database readiness check |
