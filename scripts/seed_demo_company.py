@@ -11,11 +11,12 @@ from app.auth import digest
 from app.auth.passwords import hash_password
 from app.db import SessionLocal
 from app.models import Asset, Assignment, Device, Membership, Organization, User
+from sqlalchemy import select
 
 
-def seed(count, output):
-    if not 1 <= count <= 100:
-        raise ValueError("Choose 1 to 100 devices")
+def seed(count, output, restrict_demo=False):
+    if not 1 <= count <= 20:
+        raise ValueError("Choose 1 to 20 devices")
     if output.exists():
         credentials = json.loads(output.read_text())
     else:
@@ -56,6 +57,16 @@ def seed(count, output):
                     db.flush()
                     db.add(Assignment(device_id=device_id, asset_id=asset_id,
                                       valid_from=datetime(2020, 1, 1, tzinfo=timezone.utc)))
+        if restrict_demo:
+            selected = {f"demo-GPS-{i + 1:03}" for i in range(count)}
+            for device in db.scalars(select(Device).where(Device.organization_id.in_(['demo', 'other']))):
+                if device.id.startswith(('demo-GPS-', 'other-GPS-')):
+                    device.enabled = device.id in selected
+            # Keep old keys for historical/recovery use; mark simulator eligibility explicitly.
+            for organization in credentials['organizations']:
+                for item in organization['devices']:
+                    if item['device_id'].startswith(('demo-GPS-', 'other-GPS-')):
+                        item['enabled'] = item['device_id'] in selected
         output.parent.mkdir(parents=True, exist_ok=True)
         # Write credentials before committing so a filesystem failure cannot strand new keys.
         temp = output.with_suffix(".tmp")
@@ -69,7 +80,8 @@ def seed(count, output):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--devices", type=int, default=10)
+    parser.add_argument("--devices", type=int, default=20)
+    parser.add_argument("--restrict-demo", action="store_true", help="Enable only selected demo devices; retain other demo history")
     parser.add_argument("--output", type=Path, default=Path("infrastructure/demo-credentials.json"))
     args = parser.parse_args()
-    seed(args.devices, args.output)
+    seed(args.devices, args.output, args.restrict_demo)

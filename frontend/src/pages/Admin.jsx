@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {request} from '../services/api';
+import AdminData from './AdminData';
 
 const emptyUser = {username: '', name: '', password: '', enabled: true, is_platform_admin: false, organization_ids: []};
 const emptyOrg = {id: '', name: '', enabled: true};
@@ -57,9 +58,10 @@ export default function Admin({auth, logout, openFleet, refreshProfile}) {
       <section className="admin-panel"><div className="admin-actions"><div className="admin-tabs" role="tablist" aria-label="Administration sections">
         <button role="tab" aria-selected={tab === 'organizations'} onClick={() => {setTab('organizations'); setSearch('');}}>Organizations</button>
         <button role="tab" aria-selected={tab === 'users'} onClick={() => {setTab('users'); setSearch('');}}>Users</button>
-      </div><input aria-label="Search records" placeholder={`Search ${tab}…`} value={search} onChange={e => setSearch(e.target.value)}/>
-        <button className="primary" disabled={loading} onClick={() => edit(tab)}>+ {tab === 'users' ? 'Create account' : 'Create organization'}</button></div>
-      {loading ? <p className="empty">Loading platform records…</p> : <div className="table-scroll"><table>
+        <button role="tab" aria-selected={tab === 'data'} onClick={() => setTab('data')}>Devices &amp; Data</button>
+      </div>{tab !== 'data' && <><input aria-label="Search records" placeholder={`Search ${tab}…`} value={search} onChange={e => setSearch(e.target.value)}/>
+        <button className="primary" disabled={loading} onClick={() => edit(tab)}>+ {tab === 'users' ? 'Create account' : 'Create organization'}</button></>}</div>
+      {loading ? <p className="empty">Loading platform records…</p> : tab === 'data' ? <AdminData auth={auth} organizations={organizations}/> : <div className="table-scroll"><table>
         <thead><tr>{(tab === 'organizations' ? ['Organization', 'ID', 'Status', 'Members', 'Actions'] : ['Account', 'Role', 'Workspaces', 'Status', 'Actions']).map(label => <th key={label}>{label}</th>)}</tr></thead>
         <tbody>{tab === 'organizations' ? filteredOrgs.map(org => <tr key={org.id}><td><strong>{org.name}</strong></td><td><code>{org.id}</code></td><td><span className={`badge ${org.enabled ? 'live' : 'offline'}`}>{org.enabled ? 'Active' : 'Disabled'}</span></td><td>{users.filter(u => u.organization_ids.includes(org.id)).length}</td><td><button onClick={() => edit('organizations', org)}>Edit organization</button></td></tr>) : filteredUsers.map(user => <tr key={user.id}><td><strong>{user.name}</strong><small>{user.username || 'Legacy API identity (no account login)'}</small></td><td>{user.is_platform_admin ? 'Platform admin' : 'Viewer'}</td><td>{user.organization_ids.map(id => organizations.find(o => o.id === id)?.name || id).join(', ') || 'No workspaces'}</td><td><span className={`badge ${user.enabled ? 'live' : 'offline'}`}>{user.enabled ? 'Active' : 'Disabled'}</span></td><td><button onClick={() => edit('users', user)}>Edit account</button></td></tr>)}</tbody>
       </table>{!(tab === 'organizations' ? filteredOrgs.length : filteredUsers.length) && <p className="empty">No matching records.</p>}</div>}

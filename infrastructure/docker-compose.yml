@@ -43,7 +43,7 @@ services:
       dockerfile: backend/Dockerfile
     environment: *backend-environment
     profiles: [tools]
-    command: [python, /workspace/scripts/seed_demo_company.py, --output, /private/demo-credentials.json]
+    command: [python, /workspace/scripts/seed_demo_company.py, --devices, "20", --restrict-demo, --output, /private/demo-credentials.json]
     volumes: ["./:/private"]
     depends_on:
       migrate:

@@ -15,7 +15,7 @@ def latest_snapshot(db, org):
     rows = db.execute(select(Device, Position, Asset).outerjoin(DeviceLatest, DeviceLatest.device_id == Device.id)
         .outerjoin(Position, Position.id == DeviceLatest.position_id)
         .outerjoin(Asset, Asset.id == Position.asset_id)
-        .where(Device.organization_id == org).order_by(Device.id)).all()
+        .where(Device.organization_id == org, Device.enabled.is_(True)).order_by(Device.id)).all()
     now = utcnow()
     result = []
     for device, position, asset in rows:

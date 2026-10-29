@@ -17,6 +17,7 @@ def main():
     if not os.getenv("DATABASE_URL"):
         subprocess.run([
             sys.executable, str(backend.parent / "scripts" / "seed_demo_company.py"),
+            "--devices", "20", "--restrict-demo",
             "--output", str(backend.parent / "infrastructure" / "demo-credentials.json"),
         ], check=True)
     uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True,
